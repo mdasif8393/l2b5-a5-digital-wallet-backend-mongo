@@ -7,6 +7,8 @@ import { QueryBuilder } from "../../utils/QueryBuilder";
 import { userSearchableFields } from "./user.constant";
 import { AgentStatus, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
+import { Wallet } from "../wallet/wallet.model";
+import { WalletStatus } from "../wallet/wallet.interface";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
@@ -27,14 +29,43 @@ const createUser = async (payload: Partial<IUser>) => {
     agentStatus = AgentStatus.PENDING;
   }
 
-  const user = await User.create({
-    email,
-    agentStatus,
-    password: hashedPassword,
-    ...rest,
-  });
+  const session = await User.startSession();
+  session.startTransaction();
+  try {
+    const user = await User.create(
+      [
+        {
+          email,
+          agentStatus,
+          password: hashedPassword,
+          ...rest,
+        },
+      ],
+      { session }
+    );
 
-  return user;
+    const wallet = await Wallet.create(
+      [
+        {
+          userId: user[0]._id,
+          status: WalletStatus.UNBLOCK,
+          balance: 50,
+        },
+      ],
+      { session }
+    );
+
+    console.log(wallet);
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return user;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw error;
+  }
 };
 
 // const updateUser = async (
