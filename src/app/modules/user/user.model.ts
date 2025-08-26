@@ -1,38 +1,34 @@
 import { model, Schema } from "mongoose";
-import { IAuthProvider, IsActive, IUser, Role } from "./user.interface";
+import { AgentStatus, IsActive, IUser, Role } from "./user.interface";
 
-
-const authProviderSchema = new Schema<IAuthProvider>({
-    provider: { type: String, required: true },
-    providerId: { type: String, required: true }
-}, {
-    versionKey: false,
-    _id: false
-})
-
-const userSchema = new Schema<IUser>({
+const userSchema = new Schema<IUser>(
+  {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String },
+    password: { type: String, required: true },
+    phone: { type: String, required: true, unique: true },
+    address: { type: String, required: true },
     role: {
-        type: String,
-        enum: Object.values(Role),
-        default: Role.USER
+      type: String,
+      enum: Object.values(Role),
+      required: true,
     },
-    phone: { type: String },
-    picture: { type: String },
-    address: { type: String },
-    isDeleted: { type: Boolean, default: false },
+    agentStatus: {
+      type: String,
+      enum: Object.values(AgentStatus),
+      default: AgentStatus.NOTAGENT,
+    },
     isActive: {
-        type: String,
-        enum: Object.values(IsActive),
-        default: IsActive.ACTIVE,
+      type: String,
+      enum: Object.values(IsActive),
+      default: IsActive.ACTIVE,
     },
-    isVerified: { type: Boolean, default: false },
-    auths: [authProviderSchema],
-}, {
+    isDeleted: { type: Boolean, default: false },
+  },
+  {
     timestamps: true,
-    versionKey: false
-})
+    versionKey: false,
+  }
+);
 
-export const User = model<IUser>("User", userSchema)
+export const User = model<IUser>("User", userSchema);
