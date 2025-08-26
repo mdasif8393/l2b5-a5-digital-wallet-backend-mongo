@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
-import { WalletStatus } from "./wallet.interface";
+import { IWallet, WalletStatus } from "./wallet.interface";
 
-const walletSchema = new Schema(
+const walletSchema = new Schema<IWallet>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User" },
     status: { type: String, enum: Object.values(WalletStatus) },
@@ -13,4 +13,4 @@ const walletSchema = new Schema(
   }
 );
 
-export const Wallet = model("Wallet", walletSchema);
+export const Wallet = model<IWallet>("Wallet", walletSchema);

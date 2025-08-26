@@ -16,7 +16,7 @@ export enum AgentStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
   SUSPENDED = "SUSPENDED",
-  NOTAGENT = "NOTAGENT",
+  NOT_AGENT = "NOT_AGENT",
 }
 
 export interface IUser {

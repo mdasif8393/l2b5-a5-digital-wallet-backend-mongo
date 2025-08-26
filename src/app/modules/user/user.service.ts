@@ -44,7 +44,7 @@ const createUser = async (payload: Partial<IUser>) => {
       { session }
     );
 
-    const wallet = await Wallet.create(
+    await Wallet.create(
       [
         {
           userId: user[0]._id,
@@ -54,8 +54,6 @@ const createUser = async (payload: Partial<IUser>) => {
       ],
       { session }
     );
-
-    console.log(wallet);
 
     await session.commitTransaction();
     await session.endSession();
