@@ -72,7 +72,7 @@ const updateAgentStatus = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
-      message: "Change Admin Status",
+      message: `Agent Status is changed successfully`,
       data: result.data,
     });
   }

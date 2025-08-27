@@ -149,6 +149,22 @@ const updateAgentStatus = async (id: string, payload: Partial<IUser>) => {
     throw new AppError(httpStatus.NOT_FOUND, "Agent is not found ");
   }
 
+  if (
+    isUserExists.agentStatus === AgentStatus.APPROVED &&
+    agentStatus === AgentStatus.APPROVED
+  ) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "Agent is already in Approved status"
+    );
+  }
+  if (
+    isUserExists.agentStatus === AgentStatus.SUSPENDED &&
+    agentStatus === AgentStatus.SUSPENDED
+  ) {
+    throw new AppError(httpStatus.CONFLICT, "Agent is already Suspended");
+  }
+
   if (isUserExists?.role === Role.USER || isUserExists?.role === Role.ADMIN) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -168,7 +184,9 @@ const updateAgentStatus = async (id: string, payload: Partial<IUser>) => {
   );
 
   return {
-    data: updateUser,
+    data: {
+      agentStatus: updateUser?.agentStatus,
+    },
   };
 };
 
