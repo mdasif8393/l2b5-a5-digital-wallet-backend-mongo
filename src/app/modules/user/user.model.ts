@@ -16,7 +16,7 @@ const userSchema = new Schema<IUser>(
     agentStatus: {
       type: String,
       enum: Object.values(AgentStatus),
-      default: AgentStatus.NOTAGENT,
+      default: AgentStatus.NOT_AGENT,
     },
     isActive: {
       type: String,
