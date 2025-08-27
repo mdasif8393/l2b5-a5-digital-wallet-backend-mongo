@@ -14,4 +14,11 @@ router.post(
   WalletControllers.addMoney
 );
 
+router.post(
+  "/send-money/:receiverId",
+  validateRequest(addMoneyZodSchema),
+  checkAuth(Role.USER),
+  WalletControllers.sendMoney
+);
+
 export const WalletRoutes = router;

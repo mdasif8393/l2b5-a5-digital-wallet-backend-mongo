@@ -20,6 +20,24 @@ const addMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const sendMoney = catchAsync(async (req: Request, res: Response) => {
+  const receiverId = req.params.receiverId;
+
+  const result = await WalletServices.sendMoney(
+    req.user as JwtPayload,
+    receiverId,
+    req.body
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "send money successfully",
+    data: result,
+  });
+});
+
 export const WalletControllers = {
   addMoney,
+  sendMoney,
 };
