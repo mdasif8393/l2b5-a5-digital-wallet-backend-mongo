@@ -48,22 +48,22 @@ const createUser = catchAsync(
 //   }
 // );
 
-// const getAllUsers = catchAsync(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     const query = req.query;
-//     const result = await UserServices.getAllUsers(
-//       query as Record<string, string>
-//     );
+const getAllUsers = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const result = await UserServices.getAllUsers(
+      query as Record<string, string>
+    );
 
-//     sendResponse(res, {
-//       success: true,
-//       statusCode: httpStatus.CREATED,
-//       message: "All Users Retrieved Successfully",
-//       data: result.data,
-//       meta: result.meta,
-//     });
-//   }
-// );
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "All Users Retrieved Successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  }
+);
 // const getSingleUser = catchAsync(
 //   async (req: Request, res: Response, next: NextFunction) => {
 //     const id = req.params.id;
@@ -81,7 +81,7 @@ const createUser = catchAsync(
 
 export const UserControllers = {
   createUser,
-  //   getAllUsers,
+  getAllUsers,
   //   getSingleUser,
   //   updateUser,
 };

@@ -117,25 +117,25 @@ const createUser = async (payload: Partial<IUser>) => {
 //   return newUpdatedUser;
 // };
 
-// const getAllUsers = async (query: Record<string, string>) => {
-//   const queryBuilder = new QueryBuilder(User.find(), query);
-//   const usersData = queryBuilder
-//     .filter()
-//     .search(userSearchableFields)
-//     .sort()
-//     .fields()
-//     .paginate();
+const getAllUsers = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(User.find(), query);
+  const usersData = queryBuilder
+    .filter()
+    .search(userSearchableFields)
+    .sort()
+    .fields()
+    .paginate();
 
-//   const [data, meta] = await Promise.all([
-//     usersData.build(),
-//     queryBuilder.getMeta(),
-//   ]);
+  const [data, meta] = await Promise.all([
+    usersData.build(),
+    queryBuilder.getMeta(),
+  ]);
 
-//   return {
-//     data,
-//     meta,
-//   };
-// };
+  return {
+    data,
+    meta,
+  };
+};
 // const getSingleUser = async (id: string) => {
 //   const user = await User.findById(id);
 //   return {
@@ -145,7 +145,7 @@ const createUser = async (payload: Partial<IUser>) => {
 
 export const UserServices = {
   createUser,
-  //   getAllUsers,
+  getAllUsers,
   //   getSingleUser,
   //   updateUser,
 };

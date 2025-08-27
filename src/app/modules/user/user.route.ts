@@ -12,7 +12,7 @@ router.post(
   validateRequest(createUserZodSchema),
   UserControllers.createUser
 );
-// router.get("/all-users", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), UserControllers.getAllUsers)
+router.get("/all-users", checkAuth(Role.ADMIN), UserControllers.getAllUsers);
 // router.get("/:id", checkAuth(...Object.values(Role)), UserControllers.getSingleUser)
 // router.patch("/:id", validateRequest(updateUserZodSchema), checkAuth(...Object.values(Role)), UserControllers.updateUser)
 // /api/v1/user/:id
