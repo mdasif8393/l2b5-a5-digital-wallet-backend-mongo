@@ -1,5 +1,5 @@
 import z from "zod";
-import { IsActive, Role } from "./user.interface";
+import { AgentStatus, IsActive, Role } from "./user.interface";
 
 export const createUserZodSchema = z.object({
   name: z
@@ -27,6 +27,11 @@ export const createUserZodSchema = z.object({
     .max(200, { message: "Address cannot exceed 200 characters." }),
   role: z.enum(Object.values(Role) as [string, ...string[]]),
 });
+
+export const updateAgentStatus = z.object({
+  agentStatus: z.enum([AgentStatus.APPROVED, AgentStatus.SUSPENDED]),
+});
+
 export const updateUserZodSchema = z.object({
   name: z
     .string({ invalid_type_error: "Name must be string" })

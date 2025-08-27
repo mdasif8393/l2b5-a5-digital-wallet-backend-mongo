@@ -64,25 +64,26 @@ const getAllUsers = catchAsync(
     });
   }
 );
-// const getSingleUser = catchAsync(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     const id = req.params.id;
-//     const result = await UserServices.getSingleUser(id);
-//     sendResponse(res, {
-//       success: true,
-//       statusCode: httpStatus.CREATED,
-//       message: "User Retrieved Successfully",
-//       data: result.data,
-//     });
-//   }
-// );
+const updateAgentStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const payload = req.body;
+    const result = await UserServices.updateAgentStatus(id, payload);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Change Admin Status",
+      data: result.data,
+    });
+  }
+);
 
 // function => try-catch catch => req-res function
 
 export const UserControllers = {
   createUser,
   getAllUsers,
-  //   getSingleUser,
+  updateAgentStatus,
   //   updateUser,
 };
 

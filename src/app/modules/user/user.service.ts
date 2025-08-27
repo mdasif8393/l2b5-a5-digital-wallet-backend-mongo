@@ -136,16 +136,45 @@ const getAllUsers = async (query: Record<string, string>) => {
     meta,
   };
 };
-// const getSingleUser = async (id: string) => {
-//   const user = await User.findById(id);
-//   return {
-//     data: user,
-//   };
-// };
+const updateAgentStatus = async (id: string, payload: Partial<IUser>) => {
+  const agentStatus = payload.agentStatus;
+
+  const isUserExists = await User.findById(id);
+
+  if (!isUserExists) {
+    throw new AppError(httpStatus.NOT_FOUND, "Agent is not found");
+  }
+
+  if (isUserExists.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, "Agent is not found ");
+  }
+
+  if (isUserExists?.role === Role.USER || isUserExists?.role === Role.ADMIN) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "This user is not agent. So, you can not change this user agentStatus"
+    );
+  }
+
+  const updateUser = await User.findByIdAndUpdate(
+    id,
+    {
+      agentStatus,
+    },
+    {
+      runValidators: true,
+      new: true,
+    }
+  );
+
+  return {
+    data: updateUser,
+  };
+};
 
 export const UserServices = {
   createUser,
   getAllUsers,
-  //   getSingleUser,
+  updateAgentStatus,
   //   updateUser,
 };
