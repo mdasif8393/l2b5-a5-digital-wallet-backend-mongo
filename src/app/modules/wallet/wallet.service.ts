@@ -77,26 +77,10 @@ const sendMoney = async (
   receiverId: string,
   payload: { amount: number }
 ) => {
-  /**
-   {
-  user: {
-    userId: '68add89a984f991154310e1f',
-    email: 'user@gmail.com',
-    role: 'USER',
-    iat: 1756288237,
-    exp: 1757152237
-  },
-  receiverId: '68aedad2f08f7afac3598a4e',
-  payload: { amount: 50 }
-}   
-   */
-
   const session = await Wallet.startSession();
   session.startTransaction();
 
   try {
-    // console.log(receiverId, user.userId);
-
     const senderUser = await User.findById(user.userId);
     const receiverUser = await User.findById(receiverId);
 
@@ -199,11 +183,40 @@ const sendMoney = async (
     session.endSession();
     throw error;
   }
+};
 
-  return null;
+const blockWallet = async (walletId: string, user: JwtPayload) => {
+  const adminInfo = await User.findById(user.userId);
+
+  if (adminInfo?.role !== Role.ADMIN) {
+    throw new AppError(
+      httpStatus.NOT_ACCEPTABLE,
+      "You are not permitted to block any wallet"
+    );
+  }
+
+  const walletInfo = await Wallet.findById(walletId);
+
+  if (walletInfo?.status === WalletStatus.BLOCK) {
+    throw new AppError(httpStatus.CONFLICT, "Wallet is already blocked");
+  }
+
+  const blockWallet = Wallet.findByIdAndUpdate(
+    walletId,
+    {
+      status: WalletStatus.BLOCK,
+    },
+    {
+      runValidators: true,
+      new: true,
+    }
+  );
+
+  return blockWallet;
 };
 
 export const WalletServices = {
   addMoney,
   sendMoney,
+  blockWallet,
 };

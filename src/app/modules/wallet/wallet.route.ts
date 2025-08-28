@@ -15,6 +15,12 @@ router.post(
 );
 
 router.post(
+  "/block-wallet/:walletId",
+  checkAuth(Role.ADMIN),
+  WalletControllers.blockWallet
+);
+
+router.post(
   "/send-money/:receiverId",
   validateRequest(addMoneyZodSchema),
   checkAuth(Role.USER),
