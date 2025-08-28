@@ -116,13 +116,17 @@ const getMyWallet = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllWallet = catchAsync(async (req: Request, res: Response) => {
-  const result = await WalletServices.getAllWallet(req.user as JwtPayload);
+  const result = await WalletServices.getAllWallet(
+    req.user as JwtPayload,
+    req.query as Record<string, string>
+  );
 
   sendResponse(res, {
-    statusCode: httpStatus.OK,
     success: true,
-    message: "Wallets are retrieved successfully",
-    data: result,
+    statusCode: httpStatus.OK,
+    message: "All Wallets Retrieved Successfully",
+    data: result.data,
+    meta: result.meta,
   });
 });
 

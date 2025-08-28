@@ -8,6 +8,8 @@ import { Wallet } from "./wallet.model";
 import { createTransactionId } from "../../utils/createTransactionId";
 import { TransactionType } from "../transaction/transaction.interface";
 import { WalletStatus } from "./wallet.interface";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { walletSearchableFields } from "./wallet.constant";
 
 const addMoney = async (user: JwtPayload, payload: { amount: number }) => {
   const session = await Wallet.startSession();
@@ -674,14 +676,34 @@ const getMyWallet = async (user: JwtPayload) => {
   return walletInfo;
 };
 
-const getAllWallet = async (user: JwtPayload) => {
+const getAllWallet = async (
+  user: JwtPayload,
+  query: Record<string, string>
+) => {
   if (user.role !== Role.ADMIN) {
     throw new AppError(httpStatus.BAD_REQUEST, "You have not permitted");
   }
 
-  const walletsInfo = await Wallet.find({}).populate("userId", "-password");
+  const queryBuilder = new QueryBuilder(
+    Wallet.find().populate("userId", "-password"),
+    query
+  );
+  const walletsData = queryBuilder
+    .filter()
+    .search(walletSearchableFields)
+    .sort()
+    .fields()
+    .paginate();
 
-  return walletsInfo;
+  const [data, meta] = await Promise.all([
+    walletsData.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return {
+    data,
+    meta,
+  };
 };
 
 export const WalletServices = {

@@ -1,1 +1,1 @@
-export const tourSearchableFields = ["status", "balance"];
+export const walletSearchableFields = ["status"];

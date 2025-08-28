@@ -1,28 +1,39 @@
-import { Request, Response } from "express";
+import httpStatus from "http-status-codes";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { TransactionService } from "./transaction.service";
 import { JwtPayload } from "jsonwebtoken";
 
-const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
-  const result = await TransactionService.getAllTransaction();
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: "All transactions retrieved successfully",
-    data: result,
-  });
-});
+const getAllTransaction = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const result = await TransactionService.getAllTransaction(
+      query as Record<string, string>
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.ACCEPTED,
+      message: "All Transactions Retrieved Successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  }
+);
 const getSingleTransaction = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.user);
+  const query = req.query;
   const result = await TransactionService.getSingleTransaction(
-    req.user as JwtPayload
+    req.user as JwtPayload,
+    query as Record<string, string>
   );
   sendResponse(res, {
-    statusCode: 201,
     success: true,
-    message: "Transaction retrieved successfully",
-    data: result,
+    statusCode: httpStatus.ACCEPTED,
+    message: "All Transactions Retrieved Successfully",
+    data: result.data,
+    meta: result.meta,
   });
 });
 
