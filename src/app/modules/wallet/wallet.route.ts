@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { checkAuth } from "../../middlewares/checkAuth";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { WalletControllers } from "./wallet.controller.ts";
-import { addMoneyZodSchema } from "./wallet.validation";
+import { WalletControllers } from "./wallet.controller";
+import {
+  addMoneyZodSchema,
+  updateWalletStatusZodSchema,
+} from "./wallet.validation";
 import { Role } from "../user/user.interface";
 
 const router = Router();
@@ -26,9 +29,10 @@ router.get(
 );
 
 router.post(
-  "/block-wallet/:walletId",
+  "/update-wallet-status/:walletId",
+  validateRequest(updateWalletStatusZodSchema),
   checkAuth(Role.ADMIN),
-  WalletControllers.blockWallet
+  WalletControllers.updateWalletStatus
 );
 
 router.post(

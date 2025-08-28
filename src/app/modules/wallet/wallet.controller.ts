@@ -88,12 +88,12 @@ const cashOut = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const blockWallet = catchAsync(async (req: Request, res: Response) => {
+const updateWalletStatus = catchAsync(async (req: Request, res: Response) => {
   const walletId = req.params.walletId;
-
-  const result = await WalletServices.blockWallet(
+  const result = await WalletServices.updateWalletStatus(
     walletId,
-    req.user as JwtPayload
+    req.user as JwtPayload,
+    req.body
   );
 
   sendResponse(res, {
@@ -129,7 +129,7 @@ const getAllWallet = catchAsync(async (req: Request, res: Response) => {
 export const WalletControllers = {
   addMoney,
   sendMoney,
-  blockWallet,
+  updateWalletStatus,
   getMyWallet,
   getAllWallet,
   cashOut,

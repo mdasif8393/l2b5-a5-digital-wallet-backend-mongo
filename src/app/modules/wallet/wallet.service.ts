@@ -607,7 +607,11 @@ const withdrawMoney = async (
   }
 };
 
-const blockWallet = async (walletId: string, user: JwtPayload) => {
+const updateWalletStatus = async (
+  walletId: string,
+  user: JwtPayload,
+  walletStatus: { status: string }
+) => {
   const adminInfo = await User.findById(user.userId);
 
   if (adminInfo?.role !== Role.ADMIN) {
@@ -619,14 +623,30 @@ const blockWallet = async (walletId: string, user: JwtPayload) => {
 
   const walletInfo = await Wallet.findById(walletId);
 
-  if (walletInfo?.status === WalletStatus.BLOCK) {
+  const userInfo = await User.findById(walletInfo?.userId);
+
+  if (userInfo?.role !== Role.USER) {
+    throw new AppError(httpStatus.BAD_REQUEST, "You can only block user");
+  }
+
+  if (
+    walletInfo?.status === WalletStatus.BLOCK &&
+    walletStatus?.status === WalletStatus.BLOCK
+  ) {
     throw new AppError(httpStatus.CONFLICT, "Wallet is already blocked");
   }
 
-  const blockWallet = Wallet.findByIdAndUpdate(
+  if (
+    walletInfo?.status === WalletStatus.UNBLOCK &&
+    walletStatus?.status === WalletStatus.UNBLOCK
+  ) {
+    throw new AppError(httpStatus.CONFLICT, "Wallet is already unblocked");
+  }
+
+  const updateWalletStatus = Wallet.findByIdAndUpdate(
     walletId,
     {
-      status: WalletStatus.BLOCK,
+      status: walletStatus?.status,
     },
     {
       runValidators: true,
@@ -634,7 +654,7 @@ const blockWallet = async (walletId: string, user: JwtPayload) => {
     }
   );
 
-  return blockWallet;
+  return updateWalletStatus;
 };
 
 const getMyWallet = async (user: JwtPayload) => {
@@ -667,7 +687,7 @@ const getAllWallet = async (user: JwtPayload) => {
 export const WalletServices = {
   addMoney,
   sendMoney,
-  blockWallet,
+  updateWalletStatus,
   getMyWallet,
   getAllWallet,
   cashOut,
