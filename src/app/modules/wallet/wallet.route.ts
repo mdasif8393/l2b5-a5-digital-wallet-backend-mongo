@@ -14,6 +14,12 @@ router.post(
   WalletControllers.addMoney
 );
 
+router.get(
+  "/my-wallet",
+  checkAuth(Role.AGENT, Role.USER),
+  WalletControllers.getMyWallet
+);
+
 router.post(
   "/block-wallet/:walletId",
   checkAuth(Role.ADMIN),

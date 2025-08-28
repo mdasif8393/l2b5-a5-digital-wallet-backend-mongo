@@ -215,8 +215,26 @@ const blockWallet = async (walletId: string, user: JwtPayload) => {
   return blockWallet;
 };
 
+const getMyWallet = async (user: JwtPayload) => {
+  if (user.role === Role.ADMIN) {
+    throw new AppError(httpStatus.BAD_REQUEST, "You have no wallet");
+  }
+
+  const walletInfo = await Wallet.findOne({ userId: user.userId });
+
+  if (walletInfo?.status === WalletStatus.BLOCK) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Your wallet is blocked. please, contact with customer care"
+    );
+  }
+
+  return walletInfo;
+};
+
 export const WalletServices = {
   addMoney,
   sendMoney,
   blockWallet,
+  getMyWallet,
 };
