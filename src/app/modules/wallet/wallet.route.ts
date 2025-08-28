@@ -39,6 +39,13 @@ router.post(
 );
 
 router.post(
+  "/withdraw-money/:userId",
+  validateRequest(addMoneyZodSchema),
+  checkAuth(Role.AGENT),
+  WalletControllers.withdrawMoney
+);
+
+router.post(
   "/send-money/:receiverId",
   validateRequest(addMoneyZodSchema),
   checkAuth(Role.USER),

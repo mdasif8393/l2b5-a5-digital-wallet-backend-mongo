@@ -467,6 +467,146 @@ const cashOut = async (
   }
 };
 
+const withdrawMoney = async (
+  user: JwtPayload,
+  userId: string,
+  payload: { amount: number }
+) => {
+  const session = await Wallet.startSession();
+  session.startTransaction();
+
+  try {
+    const senderUser = await User.findById(userId);
+    const receiverUser = await User.findById(user.userId);
+
+    if (senderUser?.role !== Role.USER) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You can only cash out from user"
+      );
+    }
+
+    if (!senderUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "User is not found");
+    }
+
+    if (!receiverUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
+    }
+
+    if (receiverUser.role !== Role.AGENT) {
+      throw new AppError(httpStatus.BAD_REQUEST, "You can not cash out");
+    }
+
+    if (
+      senderUser?.isDeleted ||
+      senderUser?.isActive === IsActive.BLOCKED ||
+      senderUser?.isActive === IsActive.INACTIVE
+    ) {
+      throw new AppError(httpStatus.BAD_REQUEST, "You can not send money");
+    }
+    if (
+      receiverUser?.isDeleted ||
+      receiverUser?.isActive === IsActive.BLOCKED ||
+      receiverUser?.isActive === IsActive.INACTIVE
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Your are not permitted to cash out money"
+      );
+    }
+
+    const senderWallet = await Wallet.findOne({ userId: senderUser?._id });
+    const receiverWallet = await Wallet.findOne({ userId: receiverUser?._id });
+
+    if (!senderWallet) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "You can not cash out from this user"
+      );
+    }
+
+    if (senderWallet?.status === WalletStatus.BLOCK) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You can not cash out from this user"
+      );
+    }
+    if (receiverWallet?.status === WalletStatus.BLOCK) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Your wallet is blocked.");
+    }
+
+    const cashOutFee = 0.0185;
+    const senderCashOutChange = payload.amount * cashOutFee;
+    const senderTotalCashOutAmount = payload.amount + senderCashOutChange;
+
+    if (senderTotalCashOutAmount > senderWallet.balance) {
+      throw new AppError(
+        httpStatus.NOT_ACCEPTABLE,
+        "User is not sufficient balance"
+      );
+    }
+
+    await Wallet.findOneAndUpdate(
+      { userId: senderUser?._id },
+      { $inc: { balance: -senderTotalCashOutAmount as number } },
+      {
+        runValidators: true,
+        new: true,
+        session,
+      }
+    );
+
+    const senderTransactionInfo = {
+      transactionId: createTransactionId(),
+      wallet: senderWallet?._id,
+      initiatedBy: senderUser?._id,
+      receivedBy: receiverUser?._id,
+      amount: payload?.amount,
+      fee: senderCashOutChange,
+      type: TransactionType.CASH_OUT,
+    };
+
+    await Transaction.create([senderTransactionInfo], {
+      session,
+    });
+
+    // agent wallet and transaction
+    await Wallet.findOneAndUpdate(
+      { userId: receiverUser?._id },
+      { $inc: { balance: senderTotalCashOutAmount as number } },
+      {
+        runValidators: true,
+        new: true,
+        session,
+      }
+    );
+
+    const receiverTransactionInfo = {
+      transactionId: createTransactionId(),
+      wallet: receiverWallet?._id,
+      initiatedBy: senderUser?._id,
+      receivedBy: receiverUser?._id,
+      amount: payload?.amount,
+      type: TransactionType.CASH_OUT,
+      commission: senderCashOutChange,
+    };
+
+    await Transaction.create([receiverTransactionInfo], {
+      session,
+    });
+
+    await session.commitTransaction(); //transaction
+    session.endSession();
+
+    return senderTransactionInfo;
+  } catch (error) {
+    await session.abortTransaction(); // rollback
+    session.endSession();
+    throw error;
+  }
+};
+
 const blockWallet = async (walletId: string, user: JwtPayload) => {
   const adminInfo = await User.findById(user.userId);
 
@@ -532,4 +672,5 @@ export const WalletServices = {
   getAllWallet,
   cashOut,
   cashIn,
+  withdrawMoney,
 };
