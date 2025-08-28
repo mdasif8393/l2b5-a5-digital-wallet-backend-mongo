@@ -37,10 +37,27 @@ const sendMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const withdrawMoney = catchAsync(async (req: Request, res: Response) => {
+const cashIn = catchAsync(async (req: Request, res: Response) => {
+  const receiverId = req.params.receiverId;
+
+  const result = await WalletServices.cashIn(
+    req.user as JwtPayload,
+    receiverId,
+    req.body
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "sCash In successfully",
+    data: result,
+  });
+});
+
+const cashOut = catchAsync(async (req: Request, res: Response) => {
   const agentId = req.params.agentId;
 
-  const result = await WalletServices.withdrawMoney(
+  const result = await WalletServices.cashOut(
     req.user as JwtPayload,
     agentId,
     req.body
@@ -98,5 +115,6 @@ export const WalletControllers = {
   blockWallet,
   getMyWallet,
   getAllWallet,
-  withdrawMoney,
+  cashOut,
+  cashIn,
 };

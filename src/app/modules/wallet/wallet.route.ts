@@ -35,7 +35,7 @@ router.post(
   "/cash-out/:agentId",
   validateRequest(addMoneyZodSchema),
   checkAuth(Role.USER),
-  WalletControllers.withdrawMoney
+  WalletControllers.cashOut
 );
 
 router.post(
@@ -43,6 +43,13 @@ router.post(
   validateRequest(addMoneyZodSchema),
   checkAuth(Role.USER),
   WalletControllers.sendMoney
+);
+
+router.post(
+  "/cash-in/:receiverId",
+  validateRequest(addMoneyZodSchema),
+  checkAuth(Role.AGENT),
+  WalletControllers.cashIn
 );
 
 export const WalletRoutes = router;

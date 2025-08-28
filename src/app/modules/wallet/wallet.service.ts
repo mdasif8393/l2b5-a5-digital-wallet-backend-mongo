@@ -114,6 +114,14 @@ const sendMoney = async (
     }
 
     const senderWallet = await Wallet.findOne({ userId: senderUser?._id });
+
+    if (!senderWallet) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "You can not cash out. Contact with our customer care"
+      );
+    }
+
     const receiverWallet = await Wallet.findOne({ userId: receiverUser?._id });
     if (senderWallet?.status === WalletStatus.BLOCK) {
       throw new AppError(
@@ -125,6 +133,13 @@ const sendMoney = async (
       throw new AppError(
         httpStatus.BAD_REQUEST,
         "Receiver wallet is blocked. You can not send money to this user"
+      );
+    }
+
+    if (payload.amount > senderWallet?.balance) {
+      throw new AppError(
+        httpStatus.NOT_ACCEPTABLE,
+        "You have not sufficient balance"
       );
     }
 
@@ -185,7 +200,135 @@ const sendMoney = async (
   }
 };
 
-const withdrawMoney = async (
+const cashIn = async (
+  user: JwtPayload,
+  receiverId: string,
+  payload: { amount: number }
+) => {
+  const session = await Wallet.startSession();
+  session.startTransaction();
+
+  try {
+    const senderUser = await User.findById(user.userId);
+    const receiverUser = await User.findById(receiverId);
+
+    if (!receiverUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "Receiver not found");
+    }
+
+    if (receiverUser.role === Role.AGENT || receiverUser.role === Role.ADMIN) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "You can only send money to user's account"
+      );
+    }
+
+    if (
+      senderUser?.isDeleted ||
+      senderUser?.isActive === IsActive.BLOCKED ||
+      senderUser?.isActive === IsActive.INACTIVE
+    ) {
+      throw new AppError(httpStatus.BAD_REQUEST, "You can not send money");
+    }
+    if (
+      receiverUser?.isDeleted ||
+      receiverUser?.isActive === IsActive.BLOCKED ||
+      receiverUser?.isActive === IsActive.INACTIVE
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver is not permitted to receive money"
+      );
+    }
+
+    const senderWallet = await Wallet.findOne({ userId: senderUser?._id });
+
+    if (!senderWallet) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "You can not cash out. Contact with our customer care"
+      );
+    }
+
+    const receiverWallet = await Wallet.findOne({ userId: receiverUser?._id });
+    if (senderWallet?.status === WalletStatus.BLOCK) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Your wallet is blocked. please, contact with our customer care"
+      );
+    }
+    if (receiverWallet?.status === WalletStatus.BLOCK) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Receiver wallet is blocked. You can not send money to this user"
+      );
+    }
+
+    if (payload.amount > senderWallet?.balance) {
+      throw new AppError(
+        httpStatus.NOT_ACCEPTABLE,
+        "You have not sufficient balance"
+      );
+    }
+
+    await Wallet.findOneAndUpdate(
+      { userId: senderUser?._id },
+      { $inc: { balance: -payload?.amount as number } },
+      {
+        runValidators: true,
+        new: true,
+        session,
+      }
+    );
+
+    const senderTransactionInfo = {
+      transactionId: createTransactionId(),
+      wallet: senderWallet?._id,
+      initiatedBy: senderUser?._id,
+      receivedBy: receiverUser?._id,
+      amount: payload?.amount,
+      type: TransactionType.SEND_MONEY,
+    };
+
+    await Transaction.create([senderTransactionInfo], {
+      session,
+    });
+
+    await Wallet.findOneAndUpdate(
+      { userId: receiverUser?._id },
+      { $inc: { balance: payload?.amount as number } },
+      {
+        runValidators: true,
+        new: true,
+        session,
+      }
+    );
+
+    const receiverTransactionInfo = {
+      transactionId: createTransactionId(),
+      wallet: receiverWallet?._id,
+      initiatedBy: senderUser?._id,
+      receivedBy: receiverUser?._id,
+      amount: payload?.amount,
+      type: TransactionType.CASH_IN,
+    };
+
+    await Transaction.create([receiverTransactionInfo], {
+      session,
+    });
+
+    await session.commitTransaction(); //transaction
+    session.endSession();
+
+    return senderTransactionInfo;
+  } catch (error) {
+    await session.abortTransaction(); // rollback
+    session.endSession();
+    throw error;
+  }
+};
+
+const cashOut = async (
   user: JwtPayload,
   agentId: string,
   payload: { amount: number }
@@ -305,7 +448,7 @@ const withdrawMoney = async (
       initiatedBy: senderUser?._id,
       receivedBy: receiverUser?._id,
       amount: payload?.amount,
-      type: TransactionType.WITHDRAW,
+      type: TransactionType.CASH_OUT,
       commission: senderCashOutChange,
     };
 
@@ -387,5 +530,6 @@ export const WalletServices = {
   blockWallet,
   getMyWallet,
   getAllWallet,
-  withdrawMoney,
+  cashOut,
+  cashIn,
 };

@@ -10,7 +10,6 @@ const getAllTransaction = async () => {
 };
 
 const getSingleTransaction = async (user: JwtPayload) => {
-  console.log(user);
   const userTransaction = await Transaction.find({
     $or: [{ initiatedBy: user.userId }, { receivedBy: user.userId }],
   })
