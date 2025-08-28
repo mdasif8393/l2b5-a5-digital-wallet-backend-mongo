@@ -19,11 +19,23 @@ router.get(
   checkAuth(Role.AGENT, Role.USER),
   WalletControllers.getMyWallet
 );
+router.get(
+  "/all-wallet",
+  checkAuth(Role.ADMIN),
+  WalletControllers.getAllWallet
+);
 
 router.post(
   "/block-wallet/:walletId",
   checkAuth(Role.ADMIN),
   WalletControllers.blockWallet
+);
+
+router.post(
+  "/cash-out/:agentId",
+  validateRequest(addMoneyZodSchema),
+  checkAuth(Role.USER),
+  WalletControllers.withdrawMoney
 );
 
 router.post(
