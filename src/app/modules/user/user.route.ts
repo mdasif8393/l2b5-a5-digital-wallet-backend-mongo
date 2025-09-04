@@ -17,6 +17,7 @@ router.post(
   UserControllers.createUser
 );
 router.get("/all-users", checkAuth(Role.ADMIN), UserControllers.getAllUsers);
+router.get("/me", checkAuth(...Object.values(Role)), UserControllers.getMe);
 router.patch(
   "/change-agent-status/:id",
   validateRequest(updateAgentStatus),
