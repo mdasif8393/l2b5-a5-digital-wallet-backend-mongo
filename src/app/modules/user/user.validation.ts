@@ -1,5 +1,5 @@
 import z from "zod";
-import { AgentStatus, IsActive, Role } from "./user.interface";
+import { AgentStatus, Role } from "./user.interface";
 
 export const createUserZodSchema = z.object({
   name: z
@@ -41,14 +41,8 @@ export const updateUserZodSchema = z.object({
   password: z
     .string({ invalid_type_error: "Password must be string" })
     .min(8, { message: "Password must be at least 8 characters long." })
-    .regex(/^(?=.*[A-Z])/, {
-      message: "Password must contain at least 1 uppercase letter.",
-    })
-    .regex(/^(?=.*[!@#$%^&*])/, {
-      message: "Password must contain at least 1 special character.",
-    })
-    .regex(/^(?=.*\d)/, {
-      message: "Password must contain at least 1 number.",
+    .regex(/^.{8,}$/, {
+      message: "Password must contain at least 8 characters.",
     })
     .optional(),
   phone: z
@@ -57,17 +51,6 @@ export const updateUserZodSchema = z.object({
       message:
         "Phone number must be valid for Bangladesh. Format: +8801XXXXXXXXX or 01XXXXXXXXX",
     })
-    .optional(),
-  role: z
-    // .enum(["ADMIN", "GUIDE", "USER", "SUPER_ADMIN"])
-    .enum(Object.values(Role) as [string])
-    .optional(),
-  isActive: z.enum(Object.values(IsActive) as [string]).optional(),
-  isDeleted: z
-    .boolean({ invalid_type_error: "isDeleted must be true or false" })
-    .optional(),
-  isVerified: z
-    .boolean({ invalid_type_error: "isVerified must be true or false" })
     .optional(),
   address: z
     .string({ invalid_type_error: "Address must be string" })

@@ -19,6 +19,13 @@ router.post(
 router.get("/all-users", checkAuth(Role.ADMIN), UserControllers.getAllUsers);
 router.get("/me", checkAuth(...Object.values(Role)), UserControllers.getMe);
 router.patch(
+  "/update-user/:id",
+  validateRequest(updateUserZodSchema),
+  // All Users can access this route
+  checkAuth(...Object.values(Role)),
+  UserControllers.updateUser
+);
+router.patch(
   "/change-agent-status/:id",
   validateRequest(updateAgentStatus),
   checkAuth(Role.ADMIN),
